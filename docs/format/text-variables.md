@@ -122,14 +122,21 @@ date), probably the variable's contents, and one has 0xCAB3 in the first
 u32. The two in the pairs have an empty text field and an empty
 `Contents`.
 
+**Synthetic pairs (fork).** In a pair made by an InDesign 21.6 script
+(Docsheim fixture `mock-11`: a custom text variable whose contents the
+script sets), the text field holds the contents (UTF-8, as the other text
+fields), and IDML writes them as `CustomTextVariablePreference`
+`Contents` and as the `ResultText` of the variable's instance: 1 of 1
+definition, 1 of 1 instance. The converter writes both for a custom text
+variable with a non-empty text field.
+
 The converter writes the settings above only for a definition whose
 fields match its type's pattern. Then the INDD data equals that of the
 samples, so the IDML settings are taken to be equal too. For any other
 definition it writes the date format and the running header style (the
 proven fields) and leaves out the rest, except `DeleteEndPunctuation`
 (settings, above). A custom text variable with a
-non-empty text field gets no `CustomTextVariablePreference`: that the
-text is its contents is not proven.
+non-empty text field gets its contents (synthetic pairs, above).
 
 ## Instances (class 0xCA64)
 
@@ -160,8 +167,9 @@ In the corpus of 2026-10 two more kinds of instance show their text:
   document's chapter number (`ChapterNumberPreference`) and
   `TextAfter`.
 
-The converter writes `ResultText` for these and for the file name
-variables above, and leaves it out (it is optional in the schema) for
+The converter writes `ResultText` for these, for the file name
+variables above and for custom text variables (their contents; synthetic
+pairs, above), and leaves it out (it is optional in the schema) for
 all others: page numbers, dates and cross-reference page numbers depend
 on the layout or the export time. Over the trustworthy pairs it
 reproduces 80 of the 280 `ResultText` values, with 1 different.

@@ -34,7 +34,7 @@ pub struct TextVariable {
     /// Type code (see [`TYPES`]).
     pub kind: u32,
     /// The date format of date variables; the contents of custom text
-    /// variables (not proven, see the format notes).
+    /// variables (synthetic pairs, see the format notes).
     pub text: String,
     /// Paragraph style of a running header (`MatchParagraphStyleType`), or
     /// the character style a `MatchCharacterStyleType` variable follows.

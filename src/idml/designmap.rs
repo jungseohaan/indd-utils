@@ -1370,6 +1370,18 @@ impl Writer<'_> {
                 text(x, "TextAfter");
                 x.end();
             }
+            // The text field of a custom text variable is its contents
+            // (synthetic pairs; text-variables.md, settings).
+            0xCAA3 if !v.text.is_empty() => {
+                x.start("CustomTextVariablePreference")
+                    .start("Properties")
+                    .start("Contents")
+                    .attr("type", "string")
+                    .text(&v.text)
+                    .end()
+                    .end()
+                    .end();
+            }
             _ if !same => {}
             0xCAA3 => {
                 x.start("CustomTextVariablePreference")
@@ -1456,6 +1468,8 @@ impl Writer<'_> {
             Some(d) if matches!(d.kind, 0xCAAA | 0xCAAD) && self.on_master(story) => {
                 around(d, &format!("<{}>", d.name))
             }
+            // A custom text variable shows its contents (synthetic pairs).
+            Some(d) if d.kind == 0xCAA3 && !d.text.is_empty() => Some(d.text.clone()),
             Some(d) if d.kind == 0xCAA9 && d.settings.as_ref().is_some_and(|s| s.a == 0) => self
                 .doc
                 .prefs
