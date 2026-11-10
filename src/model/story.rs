@@ -602,9 +602,15 @@ impl<'a> Reader<'a> {
                     text_variables.insert(pos, v);
                 }
                 class::ANCHOR => {
-                    let settings = self
-                        .chunk(item, chunk::ANCHOR_SETTINGS)?
-                        .map(|d| AnchorSettings::read(self.enc(), &d));
+                    // An anchor without the chunk has the settings of a
+                    // style without it (synthetic pairs; objects.md,
+                    // anchored object settings).
+                    let settings = Some(
+                        self.chunk(item, chunk::ANCHOR_SETTINGS)?
+                            .map_or_else(AnchorSettings::absent, |d| {
+                                AnchorSettings::read(self.enc(), &d)
+                            }),
+                    );
                     for child in self.children(item, chunk::ANCHOR_CHILDREN)? {
                         if let Some(mut pi) = self.page_item(child, None)? {
                             pi.anchor = settings.clone();

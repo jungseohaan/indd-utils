@@ -3252,10 +3252,11 @@ Its layout and attributes are in `index.md`.
 
 `AnchorPoint` from the u16 at 46 and at 50: (0, 2) `BottomRightAnchor`,
 (2, 2) `BottomLeftAnchor`, (2, 0) `TopLeftAnchor`, (0, 0)
-`TopRightAnchor`, (2, 1) `LeftCenterAnchor`. The field at 46 is 0 for a
-right and 2 for a left point, the one at 50 is 0 for top, 1 for centre
+`TopRightAnchor`, (2, 1) `LeftCenterAnchor`, and, from synthetic pairs
+(below), (1, 1) `CenterAnchor`. The field at 46 is 0 for a right, 1 for a
+centre and 2 for a left point, the one at 50 is 0 for top, 1 for centre
 and 2 for bottom, as the alignment codes; the converter writes only
-these five combinations.
+these six combinations.
 
 Evidence, corpus of 2026-10: the 6,363 object styles whose name matches
 one IDML style (5,457 in trustworthy pairs), the 1,076 anchored items
@@ -3270,6 +3271,26 @@ in every one. Codes seen: `AnchoredPosition` `Anchored` in 41 and
 the others. The two fields change together in every sample, so
 which one is the horizontal point is assumed from the order of the IDML
 attributes; codes 2 and 3 mean the same in both.
+
+**Synthetic pairs (fork).** INDD/IDML pairs made by InDesign 21.6 scripts
+for testing (Docsheim `scripts/indesign/indd-pairs.sh` over its 106
+fixture documents; each INDD saved and its IDML exported from the same
+save). Over the 187 anchored items and items inside them (161 with an
+`AnchoredObjectSetting` in the IDML), matched by `Self`:
+
+- `AnchorPoint` (1, 1) `CenterAnchor` in 3 items of 1 pair; the other
+  codes as above (65, 21, 6, 6 and 2 items).
+- `VerticalReferencePoint` codes 1 `TextFrame` (3 items), 8
+  `TopOfLeading` (2), 9 `EmboxTop` (3) and 10 `EmboxMiddle` (6), besides
+  the codes above.
+- An anchor without chunk 0x2800: 11 anchored items in 7 pairs. IDML
+  writes for each of them the settings of a style without the chunk
+  (`AnchorSettings::absent`, every value) and `LockPosition="false"`,
+  `AnchorSpaceAbove="0"`: 11 of 11.
+
+With these, the converter's `AnchoredObjectSetting` equals the IDML
+element (attributes in any order) for 161 of 161 items, against 131
+before (11 missing, 19 different).
 
 IDML writes an anchored item's `AnchoredObjectSetting` by the category
 rule of other object style settings: every value when the item's object

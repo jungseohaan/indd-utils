@@ -68,6 +68,8 @@ pub(super) fn anchored_settings(a: &AnchorSettings) -> Vec<(&'static str, String
         Some((2, 0)) => Some("TopLeftAnchor"),
         Some((0, 0)) => Some("TopRightAnchor"),
         Some((2, 1)) => Some("LeftCenterAnchor"),
+        // Synthetic pairs (objects.md, anchored object settings).
+        Some((1, 1)) => Some("CenterAnchor"),
         _ => None,
     };
     let bool_codes: &[(u16, &str)] = &[(0, "false"), (1, "true")];
@@ -113,10 +115,15 @@ pub(super) fn anchored_settings(a: &AnchorSettings) -> Vec<(&'static str, String
             code(
                 a.vertical_reference,
                 &[
+                    (1, "TextFrame"),
                     (2, "PageMargins"),
                     (3, "PageEdge"),
                     (4, "LineBaseline"),
                     (6, "Capheight"),
+                    // Synthetic pairs (objects.md, anchored object settings).
+                    (8, "TopOfLeading"),
+                    (9, "EmboxTop"),
+                    (10, "EmboxMiddle"),
                 ],
             ),
         ),
@@ -2186,6 +2193,39 @@ mod tests {
         let short =
             crate::model::AnchorSettings::read(crate::object::Encoding::default(), &d[..44]);
         assert_eq!(anchored_settings(&short).len(), 4);
+    }
+
+    /// Codes seen only in synthetic pairs (objects.md, anchored object
+    /// settings): the centre anchor point and four vertical reference points.
+    #[test]
+    fn anchored_settings_codes_from_synthetic_pairs() {
+        let with = |v: u16, h: u16, p: (u16, u16)| crate::model::AnchorSettings {
+            vertical_reference: Some(v),
+            horizontal_reference: Some(h),
+            point: Some(p),
+            ..Default::default()
+        };
+        let get = |a: &crate::model::AnchorSettings, k: &str| {
+            anchored_settings(a)
+                .into_iter()
+                .find(|(n, _)| *n == k)
+                .map(|(_, v)| v)
+        };
+        assert_eq!(
+            get(&with(4, 1, (1, 1)), "AnchorPoint").as_deref(),
+            Some("CenterAnchor")
+        );
+        for (code, name) in [
+            (1, "TextFrame"),
+            (8, "TopOfLeading"),
+            (9, "EmboxTop"),
+            (10, "EmboxMiddle"),
+        ] {
+            assert_eq!(
+                get(&with(code, 1, (0, 2)), "VerticalReferencePoint").as_deref(),
+                Some(name)
+            );
+        }
     }
 
     #[test]
