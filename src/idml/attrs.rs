@@ -62,14 +62,19 @@ pub(super) fn anchored_settings(a: &AnchorSettings) -> Vec<(&'static str, String
     let code = |v: Option<u16>, codes: &[(u16, &'static str)]| {
         v.and_then(|v| codes.iter().find(|(c, _)| *c == v).map(|(_, s)| *s))
     };
+    // Horizontal 0 right, 1 centre, 2 left; vertical 0 top, 1 centre,
+    // 2 bottom (objects.md, anchored object settings; the centre points
+    // from synthetic pairs).
     let point = match a.point {
-        Some((0, 2)) => Some("BottomRightAnchor"),
-        Some((2, 2)) => Some("BottomLeftAnchor"),
         Some((2, 0)) => Some("TopLeftAnchor"),
+        Some((1, 0)) => Some("TopCenterAnchor"),
         Some((0, 0)) => Some("TopRightAnchor"),
         Some((2, 1)) => Some("LeftCenterAnchor"),
-        // Synthetic pairs (objects.md, anchored object settings).
         Some((1, 1)) => Some("CenterAnchor"),
+        Some((0, 1)) => Some("RightCenterAnchor"),
+        Some((2, 2)) => Some("BottomLeftAnchor"),
+        Some((1, 2)) => Some("BottomCenterAnchor"),
+        Some((0, 2)) => Some("BottomRightAnchor"),
         _ => None,
     };
     let bool_codes: &[(u16, &str)] = &[(0, "false"), (1, "true")];
@@ -88,7 +93,13 @@ pub(super) fn anchored_settings(a: &AnchorSettings) -> Vec<(&'static str, String
             "HorizontalAlignment",
             code(
                 a.horizontal_alignment,
-                &[(0, "RightAlign"), (1, "CenterAlign"), (2, "LeftAlign")],
+                &[
+                    (0, "RightAlign"),
+                    (1, "CenterAlign"),
+                    (2, "LeftAlign"),
+                    // Synthetic pairs.
+                    (3, "TextAlign"),
+                ],
             ),
         ),
         (
@@ -96,6 +107,8 @@ pub(super) fn anchored_settings(a: &AnchorSettings) -> Vec<(&'static str, String
             code(
                 a.horizontal_reference,
                 &[
+                    // Synthetic pairs.
+                    (0, "ColumnEdge"),
                     (1, "TextFrame"),
                     (2, "PageMargins"),
                     (3, "PageEdge"),
@@ -115,15 +128,20 @@ pub(super) fn anchored_settings(a: &AnchorSettings) -> Vec<(&'static str, String
             code(
                 a.vertical_reference,
                 &[
+                    // 0, 1, 5, 7 to 11 from synthetic pairs (objects.md,
+                    // anchored object settings).
+                    (0, "ColumnEdge"),
                     (1, "TextFrame"),
                     (2, "PageMargins"),
                     (3, "PageEdge"),
                     (4, "LineBaseline"),
+                    (5, "LineXheight"),
                     (6, "Capheight"),
-                    // Synthetic pairs (objects.md, anchored object settings).
+                    (7, "LineAscent"),
                     (8, "TopOfLeading"),
                     (9, "EmboxTop"),
                     (10, "EmboxMiddle"),
+                    (11, "EmboxBottom"),
                 ],
             ),
         ),
@@ -134,6 +152,21 @@ pub(super) fn anchored_settings(a: &AnchorSettings) -> Vec<(&'static str, String
         .collect();
     out.extend(a.x_offset.map(|x| ("AnchorXoffset", num(x))));
     out.extend(a.y_offset.map(|y| ("AnchorYoffset", num(y))));
+    out
+}
+
+/// `LockPosition` and `AnchorSpaceAbove` of a page item's anchored object
+/// settings (u16 at 58 and f64 at 8 of chunk 0x2800; synthetic pairs,
+/// objects.md). Object styles and preferences still write the observed
+/// values (idml-values.md).
+pub(super) fn anchored_item_extras(a: &AnchorSettings) -> Vec<(&'static str, String)> {
+    let mut out = Vec::new();
+    out.extend(a.lock.and_then(|v| match v {
+        0 => Some(("LockPosition", "false".to_string())),
+        1 => Some(("LockPosition", "true".to_string())),
+        _ => None,
+    }));
+    out.extend(a.space_above.map(|v| ("AnchorSpaceAbove", num(v))));
     out
 }
 
@@ -2211,21 +2244,58 @@ mod tests {
                 .find(|(n, _)| *n == k)
                 .map(|(_, v)| v)
         };
-        assert_eq!(
-            get(&with(4, 1, (1, 1)), "AnchorPoint").as_deref(),
-            Some("CenterAnchor")
-        );
+        for (p, name) in [
+            ((2, 0), "TopLeftAnchor"),
+            ((1, 0), "TopCenterAnchor"),
+            ((0, 0), "TopRightAnchor"),
+            ((2, 1), "LeftCenterAnchor"),
+            ((1, 1), "CenterAnchor"),
+            ((0, 1), "RightCenterAnchor"),
+            ((2, 2), "BottomLeftAnchor"),
+            ((1, 2), "BottomCenterAnchor"),
+            ((0, 2), "BottomRightAnchor"),
+        ] {
+            assert_eq!(get(&with(4, 1, p), "AnchorPoint").as_deref(), Some(name));
+        }
         for (code, name) in [
+            (0, "ColumnEdge"),
             (1, "TextFrame"),
+            (5, "LineXheight"),
+            (7, "LineAscent"),
             (8, "TopOfLeading"),
             (9, "EmboxTop"),
             (10, "EmboxMiddle"),
+            (11, "EmboxBottom"),
         ] {
             assert_eq!(
                 get(&with(code, 1, (0, 2)), "VerticalReferencePoint").as_deref(),
                 Some(name)
             );
         }
+        assert_eq!(
+            get(&with(4, 0, (0, 2)), "HorizontalReferencePoint").as_deref(),
+            Some("ColumnEdge")
+        );
+        let text_align = crate::model::AnchorSettings {
+            horizontal_alignment: Some(3),
+            ..Default::default()
+        };
+        assert_eq!(
+            get(&text_align, "HorizontalAlignment").as_deref(),
+            Some("TextAlign")
+        );
+        let extras = crate::model::AnchorSettings {
+            lock: Some(1),
+            space_above: Some(7.5),
+            ..Default::default()
+        };
+        assert_eq!(
+            anchored_item_extras(&extras),
+            vec![
+                ("LockPosition", "true".to_string()),
+                ("AnchorSpaceAbove", "7.5".to_string())
+            ]
+        );
     }
 
     #[test]

@@ -720,6 +720,10 @@ pub struct AnchorSettings {
     pub spine_relative: Option<u16>,
     /// u16 at 56: `PinPosition`.
     pub pin: Option<u16>,
+    /// f64 at 8: `AnchorSpaceAbove` (synthetic pairs).
+    pub space_above: Option<f64>,
+    /// u16 at 58: `LockPosition` (synthetic pairs).
+    pub lock: Option<u16>,
 }
 
 impl AnchorSettings {
@@ -736,6 +740,8 @@ impl AnchorSettings {
             vertical_alignment: u(52),
             spine_relative: u(54),
             pin: u(56),
+            space_above: enc.f64_at(d, 8),
+            lock: u(58),
         }
     }
 
@@ -753,6 +759,8 @@ impl AnchorSettings {
             vertical_alignment: Some(0),
             spine_relative: Some(0),
             pin: Some(1),
+            space_above: Some(0.0),
+            lock: Some(0),
         }
     }
 }

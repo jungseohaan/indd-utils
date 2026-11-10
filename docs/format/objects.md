@@ -3239,24 +3239,29 @@ Its layout and attributes are in `index.md`.
 | Offset | Contents | IDML `AnchoredObjectSetting` |
 |---|---|---|
 | 0 | f64 | `AnchorYoffset` |
+| 8 | f64 (synthetic pairs) | `AnchorSpaceAbove` |
 | 16 | f64 | `AnchorXoffset` |
 | 32 | f64, the negative of the value at 0 in every sample | |
 | 40 | u16: 0 `InlinePosition`, 1 `Anchored`, 2 `AboveLine` | `AnchoredPosition` |
-| 42 | u16: 1 `TextFrame`, 2 `PageMargins`, 3 `PageEdge`, 4 `AnchorLocation` | `HorizontalReferencePoint` |
-| 44 | u16: 2 `PageMargins`, 3 `PageEdge`, 4 `LineBaseline`, 6 `Capheight` | `VerticalReferencePoint` |
+| 42 | u16: 0 `ColumnEdge`, 1 `TextFrame`, 2 `PageMargins`, 3 `PageEdge`, 4 `AnchorLocation` | `HorizontalReferencePoint` |
+| 44 | u16: 0 `ColumnEdge`, 1 `TextFrame`, 2 `PageMargins`, 3 `PageEdge`, 4 `LineBaseline`, 5 `LineXheight`, 6 `Capheight`, 7 `LineAscent`, 8 `TopOfLeading`, 9 `EmboxTop`, 10 `EmboxMiddle`, 11 `EmboxBottom` | `VerticalReferencePoint` |
 | 46, 50 | u16, u16 (below) | `AnchorPoint` |
-| 48 | u16: 0 `RightAlign`, 1 `CenterAlign`, 2 `LeftAlign` | `HorizontalAlignment` |
+| 48 | u16: 0 `RightAlign`, 1 `CenterAlign`, 2 `LeftAlign`, 3 `TextAlign` | `HorizontalAlignment` |
 | 52 | u16: 0 `TopAlign`, 1 `CenterAlign`, 2 `BottomAlign` | `VerticalAlignment` |
 | 54 | u16: 0 `false`, 1 `true` | `SpineRelative` |
 | 56 | u16: 0 `false`, 1 `true` | `PinPosition` |
+| 58 | u16: 0 `false`, 1 `true` (synthetic pairs) | `LockPosition` |
+
+The codes of 42 (0), 44 (0, 1, 5, 7 to 11) and 48 (3) and the fields at 8
+and 58 are from synthetic pairs (below); the others from the corpus.
 
 `AnchorPoint` from the u16 at 46 and at 50: (0, 2) `BottomRightAnchor`,
 (2, 2) `BottomLeftAnchor`, (2, 0) `TopLeftAnchor`, (0, 0)
 `TopRightAnchor`, (2, 1) `LeftCenterAnchor`, and, from synthetic pairs
-(below), (1, 1) `CenterAnchor`. The field at 46 is 0 for a right, 1 for a
-centre and 2 for a left point, the one at 50 is 0 for top, 1 for centre
-and 2 for bottom, as the alignment codes; the converter writes only
-these six combinations.
+(below), (1, 0) `TopCenterAnchor`, (1, 1) `CenterAnchor`, (0, 1)
+`RightCenterAnchor` and (1, 2) `BottomCenterAnchor`. The field at 46 is 0
+for a right, 1 for a centre and 2 for a left point, the one at 50 is 0
+for top, 1 for centre and 2 for bottom, as the alignment codes.
 
 Evidence, corpus of 2026-10: the 6,363 object styles whose name matches
 one IDML style (5,457 in trustworthy pairs), the 1,076 anchored items
@@ -3291,6 +3296,23 @@ save). Over the 187 anchored items and items inside them (161 with an
 With these, the converter's `AnchoredObjectSetting` equals the IDML
 element (attributes in any order) for 161 of 161 items, against 131
 before (11 missing, 19 different).
+
+A second synthetic pair (Docsheim `scripts/indesign/indd-synth.sh
+anchor-settings`) sets every value the IDML specification lists, one
+item each, on rectangles whose object style turns the category off (so
+IDML writes every value): the nine anchor points, five horizontal and
+twelve vertical reference points, four horizontal and three vertical
+alignments, the three positions, `LockPosition` true and false,
+`AnchorSpaceAbove` 0, 3, 7.5 and 12 (on `AboveLine` items) and two X
+and two Y offsets: 46 of 46 items match field by field (the table
+above). In that pair the f64 at 32 equals the one at 0 on `Anchored`
+items (−8 and 4.5) and is −5.28 on every `AboveLine` item, so it is not
+the negative of the value at 0 there; it is not written.
+`LockPosition` and `AnchorSpaceAbove` are written for page items
+(compared with the object style like the other values); object styles
+and preferences still write the observed values (`idml-values.md`).
+Over the 107 synthetic pairs the converter now matches 207 of 207
+elements.
 
 IDML writes an anchored item's `AnchoredObjectSetting` by the category
 rule of other object style settings: every value when the item's object

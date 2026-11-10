@@ -1072,18 +1072,28 @@ impl Writer<'_> {
                 .and_then(|s| s.enabled.as_ref())
                 .is_some_and(|on| !on.contains(&0xCA2F));
             let style = style.and_then(|s| s.anchor.as_ref()).filter(|_| !off);
-            let mut attrs: Vec<(&str, String)> = anchored_settings(d)
+            let all = |a: &crate::model::AnchorSettings| {
+                let mut v = anchored_settings(a);
+                v.extend(anchored_item_extras(a));
+                v
+            };
+            let style_values = style.map(all);
+            let mut attrs: Vec<(&str, String)> = all(d)
                 .into_iter()
-                .filter(|a| style.is_none_or(|s| !anchored_settings(s).contains(a)))
+                .filter(|a| style_values.as_ref().is_none_or(|s| !s.contains(a)))
                 .collect();
-            // A complete element has two more values (idml-values.md,
-            // anchored object settings of page items).
+            // A complete element has `LockPosition` and `AnchorSpaceAbove`
+            // too (idml-values.md, anchored object settings of page items;
+            // their values from chunk 0x2800, synthetic pairs).
             if ANCHORED_SETTINGS
                 .iter()
                 .all(|n| attrs.iter().any(|(k, _)| k == n))
             {
-                attrs.push(("LockPosition", "false".into()));
-                attrs.push(("AnchorSpaceAbove", "0".into()));
+                for (k, v) in [("LockPosition", "false"), ("AnchorSpaceAbove", "0")] {
+                    if !attrs.iter().any(|(n, _)| *n == k) {
+                        attrs.push((k, v.into()));
+                    }
+                }
             }
             if !attrs.is_empty() {
                 x.empty("AnchoredObjectSetting", &attrs);
