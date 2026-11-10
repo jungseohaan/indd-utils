@@ -4,7 +4,16 @@ Rust reader for INDD files (Adobe InDesign's native format) and converter
 to IDML. Crate and command: `indd`. Repo: `storytold/indd-utils` (public).
 Licence: MIT OR Apache-2.0.
 
-## Clean-room rules (read `CLEANROOM.md`)
+## Fork rules (read `CLEANROOM.md`, "Fork method")
+
+This checkout is the fork `jungseohaan/indd-utils`. After commit `a22c473`
+on it also uses InDesign-made synthetic pairs as evidence (Docsheim
+`scripts/indesign/indd-pairs.sh`) and may run InDesign through its scripting
+interface. Mark every fact that rests on them "synthetic pairs" in
+`docs/format/`. The upstream rules below still apply except where the fork
+method replaces them (InDesign use, documents made for the project).
+
+## Clean-room rules (upstream; read `CLEANROOM.md`)
 
 - Never commit downloaded sample files of any kind (INDD, IDML, PDF,
   images, archives), whatever their licence. They can be downloaded
@@ -16,8 +25,9 @@ Licence: MIT OR Apache-2.0.
 - Do not use knowledge of InDesign internals from memory (InDesign SDK
   class names, IDs, persistence details). If it can't be shown from the
   corpus or a permitted reference in `CLEANROOM.md`, it doesn't go in.
-- Do not install or run InDesign, and do not ask anyone to create INDD
-  files for this project.
+- Upstream: do not install or run InDesign, and do not ask anyone to
+  create INDD files for this project. (The fork replaces this rule; see
+  above.)
 - No golden output files derived from third-party samples. Corpus tests
   compare against the sibling IDML at run time.
 - Openly licensed corpus sources may be listed in a committed fetch

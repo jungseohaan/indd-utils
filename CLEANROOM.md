@@ -1,5 +1,44 @@
 # How this converter is developed
 
+> **This is the fork `jungseohaan/indd-utils`. After commit `a22c473` it
+> uses a different method from the upstream project (`storytold/indd-utils`).**
+> The fork's rules are in "Fork method" below. Everything after that section
+> describes the upstream method, under which the facts recorded up to and
+> including that commit were learned; it is kept unchanged as the record of
+> that work. Facts the fork adds are marked in `docs/format/` (see below), and
+> changes that rest on them are not suitable for the upstream project.
+
+## Fork method (after `a22c473`)
+
+The fork is used by the Docsheim converter (IDML/INDD → DOCX/HWPX), which
+is developed on a machine with Adobe InDesign installed. The fork accepts
+evidence that the upstream rules exclude:
+
+- **InDesign is installed and run.** Synthetic documents are made by
+  InDesign scripts (ExtendScript) for the purpose of testing; each one is
+  saved as INDD and exported as IDML from the same save, so the pair is
+  trustworthy by construction. The scripts live in the Docsheim
+  repository (`scripts/indesign/`, pairs by `scripts/indesign/indd-pairs.sh`).
+- **Facts may rest on these synthetic pairs.** Each such fact in
+  `docs/format/` says so ("synthetic pairs") and names the pair scripts and
+  the match count, as with corpus facts.
+- **Third-party documents may be measured read-only.** They are not
+  committed, named or quoted; only counts are recorded.
+
+Unchanged from upstream:
+
+- No Adobe binary is disassembled, decompiled, traced or opened, and the
+  InDesign SDK and its documentation are not used. InDesign is used only as
+  an application, through its documented scripting interface.
+- No code under an incompatible licence; no code from other INDD readers.
+- No sample files are committed (synthetic pairs are regenerated from their
+  scripts).
+- The IDML side follows Adobe's published IDML specification.
+
+Commit `edf825f` (fork only, before this change) was made before the fork
+method was written down.
+
+
 The INDD format is undocumented. This project learns it only by examining
 INDD files and comparing them with IDML files exported from the same
 documents.

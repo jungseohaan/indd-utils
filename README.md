@@ -7,6 +7,12 @@ named `indd`.
 Adobe and InDesign are trademarks of Adobe Inc. This project is not
 affiliated with or endorsed by Adobe.
 
+**Fork.** This is `jungseohaan/indd-utils`, a fork of
+[storytold/indd-utils](https://github.com/storytold/indd-utils) used by the
+Docsheim converter. After commit `a22c473` on it also learns from
+InDesign-made synthetic INDD/IDML pairs, which the upstream method excludes
+([`CLEANROOM.md`](CLEANROOM.md), "Fork method").
+
 ## Status
 
 The converter turns INDD and INDT files into IDML packages. It writes
