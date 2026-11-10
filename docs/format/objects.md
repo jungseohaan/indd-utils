@@ -3314,6 +3314,16 @@ and preferences still write the observed values (`idml-values.md`).
 Over the 107 synthetic pairs the converter now matches 207 of 207
 elements.
 
+A third synthetic pair (Docsheim `scripts/indesign/indd-synth.sh
+anchor-offset-tolerance`) sets X and Y offsets of 0, ±1e-13 to ±1e-6,
+1e-4, 0.001 and 0.01 pt on items whose object style has offsets of 0:
+InDesign reads back 0 for every value of at most 1e-9 pt and writes no
+offset for them, and keeps and writes 1e-8 and above (26 of 26). The
+converter compares an item's offsets with its style's within 1e-9 pt
+(an offset that close to the style's is not written) but writes a
+stored value as it is: where IDML writes every value, it writes stored
+values below 1e-9 pt too.
+
 IDML writes an anchored item's `AnchoredObjectSetting` by the category
 rule of other object style settings: every value when the item's object
 style turns the category off (`EnableAnchoredObjectOptions`, ID 0xCA2F

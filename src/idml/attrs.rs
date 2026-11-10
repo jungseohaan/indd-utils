@@ -155,6 +155,23 @@ pub(super) fn anchored_settings(a: &AnchorSettings) -> Vec<(&'static str, String
     out
 }
 
+/// Whether an item's anchored setting value equals its object style's:
+/// offsets within 1e-9 pt are equal, as InDesign takes a difference that
+/// small as none (synthetic pairs; objects.md, anchored object settings).
+/// The item's own value is still the one written.
+pub(super) fn anchored_value_equal(a: &(&'static str, String), b: &(&'static str, String)) -> bool {
+    if a.0 != b.0 {
+        return false;
+    }
+    match a.0 {
+        "AnchorXoffset" | "AnchorYoffset" => match (a.1.parse::<f64>(), b.1.parse::<f64>()) {
+            (Ok(x), Ok(y)) => (x - y).abs() <= 1e-9,
+            _ => a.1 == b.1,
+        },
+        _ => a.1 == b.1,
+    }
+}
+
 /// `LockPosition` and `AnchorSpaceAbove` of a page item's anchored object
 /// settings (u16 at 58 and f64 at 8 of chunk 0x2800; synthetic pairs,
 /// objects.md). Object styles and preferences still write the observed
@@ -2289,6 +2306,17 @@ mod tests {
             space_above: Some(7.5),
             ..Default::default()
         };
+        let off = |v: &str| ("AnchorYoffset", v.to_string());
+        assert!(anchored_value_equal(
+            &off("3.637978807091713e-12"),
+            &off("0")
+        ));
+        assert!(anchored_value_equal(&off("-1e-9"), &off("0")));
+        assert!(!anchored_value_equal(&off("1e-8"), &off("0")));
+        assert!(!anchored_value_equal(
+            &("AnchorXoffset", "0".into()),
+            &off("0")
+        ));
         assert_eq!(
             anchored_item_extras(&extras),
             vec![

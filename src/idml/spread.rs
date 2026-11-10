@@ -1080,7 +1080,11 @@ impl Writer<'_> {
             let style_values = style.map(all);
             let mut attrs: Vec<(&str, String)> = all(d)
                 .into_iter()
-                .filter(|a| style_values.as_ref().is_none_or(|s| !s.contains(a)))
+                .filter(|a| {
+                    style_values
+                        .as_ref()
+                        .is_none_or(|s| !s.iter().any(|b| anchored_value_equal(a, b)))
+                })
                 .collect();
             // A complete element has `LockPosition` and `AnchorSpaceAbove`
             // too (idml-values.md, anchored object settings of page items;
